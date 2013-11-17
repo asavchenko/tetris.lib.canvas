@@ -177,17 +177,15 @@
 
             gameOver = function() {
                 var i, j;
-                console.log('game over');
+
                 for (i = boardHeight - 1; i >= 0; i -= 1) {
                     for (j = 0; j < boardWidth; j += 1) {
                         window.setTimeout(function(i, j) {
                             vboard[i][j] = 1;
                             context.fill(board[i][j], fillCellColor).stroke(board[i][j], strokeCellColor);
                             if (i === 0 && j === boardWidth - 1) {
-                                console.log('restart');
                                 restart();
                             }
-                            j += 1;
                         }.bind(this, i, j), 100 * (boardHeight - i + j + boardWidth))
                     }
                 }
