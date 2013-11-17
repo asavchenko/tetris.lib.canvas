@@ -10,14 +10,65 @@
         fillBoardColor = '#212121',
         strokeBoardColor = '#313131',
         fillCellColor = '#505050',
-        strokeCellColor = '#616161';
+        strokeCellColor = '#616161',
+        gameSpeed = 500;
     context.fill(new LC.RoundedRectangle(1, 1, cellSize * boardWidth, cellSize * boardHeight), fillCanvasColor);
     // Shape fill/stroke
     (function() {
         var board = [],
             vboard = [],
-            i, j, figures, cx = atom.number.round(boardWidth / 3),
-            cy = 0,
+            gameInterval,
+            i, j,
+            figures = [
+                [
+                    [1]
+                ],
+                [
+                    [1, 1],
+                    [0, 0]
+                ],
+                [
+                    [0, 0, 1],
+                    [0, 1, 1],
+                    [0, 1, 0]
+                ],
+                [
+                    [1, 0, 0],
+                    [1, 1, 0],
+                    [0, 1, 0]
+                ],
+                [
+                    [1, 1, 0],
+                    [0, 1, 0],
+                    [0, 1, 0]
+                ],
+                [
+                    [0, 1, 0],
+                    [0, 1, 0],
+                    [0, 1, 0]
+                ],
+                [
+                    [0, 1, 1],
+                    [0, 1, 0],
+                    [0, 1, 0]
+                ],
+                [
+                    [1, 1, 1, 1],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0]
+                ],
+                [
+                    [0, 1, 0],
+                    [1, 1, 1],
+                    [0, 0, 0]
+                ],
+                [
+                    [1, 1],
+                    [1, 1]
+                ]
+            ],
+            cx, cy,
             figure,
             getRotated = function(fgr) {
                 var tmp = [],
@@ -65,8 +116,7 @@
             },
 
             getRandomFigure = function() {
-                var i = 0,
-                    l, fg = atom.array.random(figures);
+                var i = 0, l, fg = atom.array.random(figures);
                 for (l = atom.number.random(0, 4); i < l; i += 1) {
                     fg = getRotated(fg);
                 }
@@ -95,6 +145,18 @@
                 return false;
             },
 
+            isGameOver = function() {
+                var j;
+                for (j = 0; j < boardWidth; j++) {
+                    if (vboard[0][j]) {
+                        gameOver();
+                        return true;
+                    }
+                }
+
+                return false;
+            },
+
             updateBoard = function() {
                 var i, j, isNeedToRemove;
                 for (i = 0; i < vboard.length; i += 1) {
@@ -113,9 +175,43 @@
                 showBoard();
             },
 
+            gameOver = function() {
+                var i, j;
+                console.log('game over');
+                for (i = boardHeight - 1; i >= 0; i -= 1) {
+                    for (j = 0; j < boardWidth; j += 1) {
+                        window.setTimeout(function(i, j) {
+                            vboard[i][j] = 1;
+                            context.fill(board[i][j], fillCellColor).stroke(board[i][j], strokeCellColor);
+                            if (i === 0 && j === boardWidth - 1) {
+                                console.log('restart');
+                                restart();
+                            }
+                            j += 1;
+                        }.bind(this, i, j), 100 * (boardHeight - i + j + boardWidth))
+                    }
+                }
+            },
+
+            restart = function() {
+                var i, j;
+                for (i = 0; i < board.length; i += 1) {
+                    for (j = 0; j < board[i].length; j += 1) {
+                        window.setTimeout(function(ii, jj) {
+                            var ii, jj;
+                            vboard[ii][jj] = 0;
+                            context.fill(board[ii][jj], fillBoardColor).stroke(board[ii][jj], strokeBoardColor);
+                            if (ii === boardHeight - 1 && jj === boardWidth - 1) {
+                                start();
+                            }
+                        }.bind(this, i, j), 100 * (i + j));
+                    }
+                }
+
+            },
+
             deleteRow = function(r) {
-                var newRow = [],
-                    i;
+                var newRow = [], i;
                 for (i = 0; i < boardWidth; i += 1) {
                     newRow[i] = 0;
                 }
@@ -130,122 +226,84 @@
                         if (typeof vboard[i] !== 'undefined' && typeof vboard[i][j] !== 'undefined') {
                             if (vboard[i][j]) {
                                 context.fill(board[i][j], fillCellColor).stroke(board[i][j], strokeCellColor);
-                            }
-                            else {
+                            } else {
                                 context.fill(board[i][j], fillBoardColor).stroke(board[i][j], strokeBoardColor);
                             }
                         }
                     }
                 }
-            };
-
-        for (i = 0; i < boardHeight; i += 1) {
-            board[i] = [];
-            vboard[i] = [];
-            for (j = 0; j < boardWidth; j += 1) {
-                board[i][j] = new LC.RoundedRectangle(j * cellSize + j, - cellSize * 2 - 2 + i * cellSize + i, cellSize, cellSize).snapToPixel();
-                vboard[i][j] = 0;
-                context.fill(board[i][j], fillBoardColor).stroke(board[i][j], strokeBoardColor);
-            }
-        };
-
-        figures = [
-            [
-                [1]
-            ],
-            [
-                [1, 1],
-                [0, 0]
-            ],
-            [
-                [0, 0, 1],
-                [0, 1, 1],
-                [0, 1, 0]
-            ],
-            [
-                [1, 0, 0],
-                [1, 1, 0],
-                [0, 1, 0]
-            ],
-            [
-                [1, 1, 0],
-                [0, 1, 0],
-                [0, 1, 0]
-            ],
-            [
-                [0, 1, 0],
-                [0, 1, 0],
-                [0, 1, 0]
-            ],
-            [
-                [0, 1, 1],
-                [0, 1, 0],
-                [0, 1, 0]
-            ],
-            [
-                [1, 1, 1, 1],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0]
-            ],
-            [
-                [0, 1, 0],
-                [1, 1, 1],
-                [0, 0, 0]
-            ],
-            [
-                [1, 1],
-                [1, 1]
-            ]
-        ];
-        atom.Keyboard().events.add({
-            'adown': function() {
-                hide(figure);
-                cy += 1;
-                if (isIntersect(figure)) {
-                    cy -= 1;
-                }
-                show(figure);
             },
-            'aright': function() {
-                hide(figure);
-                cx += 1;
-                if (isIntersect(figure)) {
-                    cx -= 1;
-                }
-                show(figure);
-            },
-            'aleft': function() {
-                hide(figure);
-                cx -= 1;
-                if (isIntersect(figure)) {
-                    cx += 1;
-                }
-                show(figure);
-            },
-            'space': function() {
-                hide(figure);
-                figure = getRotated(figure);
-                show(figure);
-            }
 
-        });
-        figure = getRandomFigure();
-
-        window.setInterval(function() {
-            hide(figure);
-            cy += 1;
-            if (isIntersect(figure)) {
-                cy -= 1;
-                show(figure);
-                figure = getRandomFigure();
-                cy = 0;
+            start = function() {
                 cx = atom.number.round(boardWidth / 3);
-                updateBoard();
-            }
-            else {
-                show(figure);
-            }
-        }, 500);
+                cy = 0,
+                figure = getRandomFigure();
+
+                gameInterval = window.setInterval(function() {
+                    hide(figure);
+                    cy += 1;
+                    if (isIntersect(figure)) {
+                        if (isGameOver()) {
+                            window.clearInterval(gameInterval);
+                            gameInterval = 0;
+                            return;
+                        }
+                        cy -= 1;
+                        show(figure);
+                        figure = getRandomFigure();
+                        cy = 0;
+                        cx = atom.number.round(boardWidth / 3);
+                        updateBoard();
+                    } else {
+                        show(figure);
+                    }
+                }, gameSpeed);
+            },
+
+            init = function() {
+                for (i = 0; i < boardHeight; i += 1) {
+                    board[i] = [];
+                    vboard[i] = [];
+                    for (j = 0; j < boardWidth; j += 1) {
+                        board[i][j] = new LC.RoundedRectangle(j * cellSize + j, - cellSize * 2 - 2 + i * cellSize + i, cellSize, cellSize).snapToPixel();
+                        vboard[i][j] = 0;
+                        context.fill(board[i][j], fillBoardColor).stroke(board[i][j], strokeBoardColor);
+                    }
+                };
+
+                atom.Keyboard().events.add({
+                    'adown': function() {
+                        hide(figure);
+                        cy += 1;
+                        if (isIntersect(figure)) {
+                            cy -= 1;
+                        }
+                        show(figure);
+                    },
+                    'aright': function() {
+                        hide(figure);
+                        cx += 1;
+                        if (isIntersect(figure)) {
+                            cx -= 1;
+                        }
+                        show(figure);
+                    },
+                    'aleft': function() {
+                        hide(figure);
+                        cx -= 1;
+                        if (isIntersect(figure)) {
+                            cx += 1;
+                        }
+                        show(figure);
+                    },
+                    'space': function() {
+                        hide(figure);
+                        figure = getRotated(figure);
+                        show(figure);
+                    }
+                });
+            };
+        init();
+        start();
     })();
 }());
